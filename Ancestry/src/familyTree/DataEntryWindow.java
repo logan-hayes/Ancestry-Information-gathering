@@ -1,6 +1,7 @@
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
+import javax.swing.JDialog;
 import java.awt.GridBagLayout;
 import javax.swing.JPanel;
 import java.awt.GridBagConstraints;
@@ -10,8 +11,12 @@ import javax.swing.JButton;
 import javax.swing.JProgressBar;
 import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -20,6 +25,7 @@ import java.awt.Font;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DateEditor;
 import javax.swing.JTable;
 import javax.swing.JRadioButton;
 import javax.swing.JTextPane;
@@ -38,53 +44,41 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SpinnerDateModel;
+import java.util.Date;
+import java.util.Calendar;
 
 public class DataEntryWindow {
 
-	private JFrame frmPersonalInformationEntry;
-	private JTextField first_name_field;
+	JDialog frmPersonalInformationEntry;
+	private JTextField name_field;
 	int current_card = 1;
 	boolean editable = false;
 	List<Component> editable_fields = new ArrayList<Component>();
 	List<Component> dod_fields = new ArrayList<Component>();
-	private JTextField last_name_field;
+	FamilyTreeDatabase db = new FamilyTreeDatabaseSimple("family_tree.db");
 	private JTextField gn_field;
 	private JTextField rel_fn_field;
 	private JTextField rel_ln_field;
 	private JTextField rel_id_field;
 	private JTable current_relationships_table;
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					DataEntryWindow window = new DataEntryWindow();
-					window.frmPersonalInformationEntry.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
 	 * Create the application.
 	 */
-	public DataEntryWindow() {
-		initialize();
+	public DataEntryWindow(Optional<Person> person) {
+		initialize(person);
+		
 	}
-
 	/**
-	 * Initialize the contents of the frame.
+	 * Initialize the contents of the frame. Creates a new person if the person parameter is null.
 	 */
-	private void initialize() {
-		frmPersonalInformationEntry = new JFrame();
-		frmPersonalInformationEntry.setResizable(false);
+	private void initialize(Optional<Person> person) {
+		
+		frmPersonalInformationEntry = new JDialog();
+		frmPersonalInformationEntry.setModal(true);
 		frmPersonalInformationEntry.setTitle("Personal Information Entry");
-		frmPersonalInformationEntry.setBounds(100, 100, 639, 403);
-		frmPersonalInformationEntry.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmPersonalInformationEntry.setBounds(100, 100, 664, 407);
+		frmPersonalInformationEntry.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{400, 0};
 		gridBagLayout.rowHeights = new int[]{59, -22, 65, 41, 0};
@@ -196,97 +190,79 @@ public class DataEntryWindow {
 		entry_cards.add(basic_info_panel, "name_371299842951200");
 		GridBagLayout gbl_basic_info_panel = new GridBagLayout();
 		gbl_basic_info_panel.columnWidths = new int[]{138, 207, 0};
-		gbl_basic_info_panel.rowHeights = new int[]{0, 0, 39, 0, 0, 0, 0};
+		gbl_basic_info_panel.rowHeights = new int[]{0, 39, 0, 0, 0, 0};
 		gbl_basic_info_panel.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-		gbl_basic_info_panel.rowWeights = new double[]{1.0, 1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_basic_info_panel.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
 		basic_info_panel.setLayout(gbl_basic_info_panel);
 		
-		JLabel first_name_label = new JLabel("First Name:");
-		GridBagConstraints gbc_first_name_label = new GridBagConstraints();
-		gbc_first_name_label.fill = GridBagConstraints.HORIZONTAL;
-		gbc_first_name_label.insets = new Insets(0, 0, 5, 5);
-		gbc_first_name_label.gridx = 0;
-		gbc_first_name_label.gridy = 0;
-		basic_info_panel.add(first_name_label, gbc_first_name_label);
+		JLabel name_label = new JLabel("Name:");
+		GridBagConstraints gbc_name_label = new GridBagConstraints();
+		gbc_name_label.fill = GridBagConstraints.HORIZONTAL;
+		gbc_name_label.insets = new Insets(0, 0, 5, 5);
+		gbc_name_label.gridx = 0;
+		gbc_name_label.gridy = 0;
+		basic_info_panel.add(name_label, gbc_name_label);
 		
-		first_name_field = new JTextField();
-		first_name_field.setEnabled(false);
-		GridBagConstraints gbc_first_name_field = new GridBagConstraints();
-		gbc_first_name_field.fill = GridBagConstraints.HORIZONTAL;
-		gbc_first_name_field.insets = new Insets(0, 0, 5, 0);
-		gbc_first_name_field.gridx = 1;
-		gbc_first_name_field.gridy = 0;
-		basic_info_panel.add(first_name_field, gbc_first_name_field);
-		editable_fields.add(first_name_field);
-		first_name_field.setColumns(15);
-		
-		JLabel last_name_label = new JLabel("Last Name:");
-		GridBagConstraints gbc_last_name_label = new GridBagConstraints();
-		gbc_last_name_label.fill = GridBagConstraints.HORIZONTAL;
-		gbc_last_name_label.insets = new Insets(0, 0, 5, 5);
-		gbc_last_name_label.gridx = 0;
-		gbc_last_name_label.gridy = 1;
-		basic_info_panel.add(last_name_label, gbc_last_name_label);
-		
-		last_name_field = new JTextField();
-		last_name_field.setEnabled(false);
-		GridBagConstraints gbc_last_name_field = new GridBagConstraints();
-		gbc_last_name_field.fill = GridBagConstraints.HORIZONTAL;
-		gbc_last_name_field.insets = new Insets(0, 0, 5, 0);
-		gbc_last_name_field.gridx = 1;
-		gbc_last_name_field.gridy = 1;
-		basic_info_panel.add(last_name_field, gbc_last_name_field);
-		editable_fields.add(last_name_field);
-		last_name_field.setColumns(15);
+		name_field = new JTextField();
+		name_field.setEnabled(false);
+		if(person.isPresent()) {
+			name_field.setText(person.get().getName());
+		}
+		GridBagConstraints gbc_name_field = new GridBagConstraints();
+		gbc_name_field.fill = GridBagConstraints.HORIZONTAL;
+		gbc_name_field.insets = new Insets(0, 0, 5, 0);
+		gbc_name_field.gridx = 1;
+		gbc_name_field.gridy = 0;
+		basic_info_panel.add(name_field, gbc_name_field);
+		editable_fields.add(name_field);
+		name_field.setColumns(15);
 		
 		JLabel dob_label = new JLabel("Date of Birth:");
 		GridBagConstraints gbc_dob_label = new GridBagConstraints();
 		gbc_dob_label.fill = GridBagConstraints.HORIZONTAL;
 		gbc_dob_label.insets = new Insets(0, 0, 5, 5);
 		gbc_dob_label.gridx = 0;
-		gbc_dob_label.gridy = 2;
+		gbc_dob_label.gridy = 1;
 		basic_info_panel.add(dob_label, gbc_dob_label);
 		
 		JPanel dob_selector_panel = new JPanel();
 		GridBagConstraints gbc_dob_selector_panel = new GridBagConstraints();
 		gbc_dob_selector_panel.anchor = GridBagConstraints.WEST;
 		gbc_dob_selector_panel.insets = new Insets(0, 0, 5, 0);
-		gbc_dob_selector_panel.fill = GridBagConstraints.VERTICAL;
 		gbc_dob_selector_panel.gridx = 1;
-		gbc_dob_selector_panel.gridy = 2;
+		gbc_dob_selector_panel.gridy = 1;
 		basic_info_panel.add(dob_selector_panel, gbc_dob_selector_panel);
 		dob_selector_panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
-		JSpinner dob_month_spinner_field = new JSpinner();
-		dob_month_spinner_field.setEnabled(false);
-		dob_selector_panel.add(dob_month_spinner_field);
-		editable_fields.add(dob_month_spinner_field);
+		JSpinner dob_spinner_field = new JSpinner();
+		//https://stackoverflow.com/questions/22929237/convert-java-time-localdate-into-java-util-date-type
+		Date dob = new Date();
+		if(person.isPresent()) {
+			LocalDate local_dob = person.get().getBirthDate();
+			dob = Date.from(local_dob.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		}
+		dob_spinner_field.setModel(new SpinnerDateModel(dob, null, null, Calendar.DAY_OF_YEAR));
+		DateEditor de_dob_spinner_field = new JSpinner.DateEditor(dob_spinner_field, "MMMM dd, yyyy");
+		dob_spinner_field.setEditor(de_dob_spinner_field);
+		dob_spinner_field.setEnabled(false);
 		
-		JSpinner dob_day_spinner_field = new JSpinner();
-		dob_day_spinner_field.setEnabled(false);
-		dob_selector_panel.add(dob_day_spinner_field);
-		editable_fields.add(dob_day_spinner_field);
-		
-		JSpinner dob_year_spinner_field = new JSpinner();
-		dob_year_spinner_field.setEnabled(false);
-		dob_selector_panel.add(dob_year_spinner_field);
-		editable_fields.add(dob_year_spinner_field);
+		dob_selector_panel.add(dob_spinner_field);
+		editable_fields.add(dob_spinner_field);
 		
 		JLabel dod_label = new JLabel("Date of Death:");
 		GridBagConstraints gbc_dod_label = new GridBagConstraints();
 		gbc_dod_label.fill = GridBagConstraints.HORIZONTAL;
 		gbc_dod_label.insets = new Insets(0, 0, 5, 5);
 		gbc_dod_label.gridx = 0;
-		gbc_dod_label.gridy = 3;
+		gbc_dod_label.gridy = 2;
 		basic_info_panel.add(dod_label, gbc_dod_label);
 		
 		JPanel dod_selector_panel = new JPanel();
 		GridBagConstraints gbc_dod_selector_panel = new GridBagConstraints();
 		gbc_dod_selector_panel.anchor = GridBagConstraints.WEST;
 		gbc_dod_selector_panel.insets = new Insets(0, 0, 5, 0);
-		gbc_dod_selector_panel.fill = GridBagConstraints.VERTICAL;
 		gbc_dod_selector_panel.gridx = 1;
-		gbc_dod_selector_panel.gridy = 3;
+		gbc_dod_selector_panel.gridy = 2;
 		basic_info_panel.add(dod_selector_panel, gbc_dod_selector_panel);
 		
 		JCheckBox dead_check = new JCheckBox("Deceased");
@@ -308,31 +284,28 @@ public class DataEntryWindow {
 		dod_selector_panel.add(dead_check);
 		editable_fields.add(dead_check);
 		
-		JSpinner dod_month_spinner_field = new JSpinner();
-		dod_month_spinner_field.setEnabled(false);
-		dod_month_spinner_field.setModel(new SpinnerNumberModel(Integer.valueOf(0), null, null, Integer.valueOf(1)));
-		dod_selector_panel.add(dod_month_spinner_field);
-		editable_fields.add(dod_month_spinner_field);
-		dod_fields.add(dod_month_spinner_field);
-		
-		JSpinner dod_day_spinner_field = new JSpinner();
-		dod_day_spinner_field.setEnabled(false);
-		dod_selector_panel.add(dod_day_spinner_field);
-		editable_fields.add(dod_day_spinner_field);
-		dod_fields.add(dod_day_spinner_field);
-		
-		JSpinner dod_year_spinner_field = new JSpinner();
-		dod_year_spinner_field.setEnabled(false);
-		dod_selector_panel.add(dod_year_spinner_field);
-		editable_fields.add(dod_year_spinner_field);
-		dod_fields.add(dod_year_spinner_field);
+		JSpinner dod_spinner_field = new JSpinner();
+		Date dod = new Date();
+		if(person.isPresent()) {
+			LocalDate local_dod = person.get().getDeathDate();
+			if(local_dod != null) {
+				dod = Date.from(local_dod.atStartOfDay(ZoneId.systemDefault()).toInstant());
+			}
+		}
+		dod_spinner_field.setEnabled(false);
+		dod_spinner_field.setModel(new SpinnerDateModel(dod, null, null, Calendar.DAY_OF_YEAR));
+		DateEditor de_dod_spinner_field = new JSpinner.DateEditor(dod_spinner_field, "MMMM dd, yyyy");
+		dod_spinner_field.setEditor(de_dod_spinner_field);
+		dod_selector_panel.add(dod_spinner_field);
+		editable_fields.add(dod_spinner_field);
+		dod_fields.add(dod_spinner_field);
 		
 		JLabel bs_label = new JLabel("Birth Sex:");
 		GridBagConstraints gbc_bs_label = new GridBagConstraints();
 		gbc_bs_label.anchor = GridBagConstraints.WEST;
 		gbc_bs_label.insets = new Insets(0, 0, 5, 5);
 		gbc_bs_label.gridx = 0;
-		gbc_bs_label.gridy = 4;
+		gbc_bs_label.gridy = 3;
 		basic_info_panel.add(bs_label, gbc_bs_label);
 		
 		JPanel bs_radio_panel = new JPanel();
@@ -340,7 +313,7 @@ public class DataEntryWindow {
 		gbc_bs_radio_panel.anchor = GridBagConstraints.WEST;
 		gbc_bs_radio_panel.insets = new Insets(0, 0, 5, 0);
 		gbc_bs_radio_panel.gridx = 1;
-		gbc_bs_radio_panel.gridy = 4;
+		gbc_bs_radio_panel.gridy = 3;
 		basic_info_panel.add(bs_radio_panel, gbc_bs_radio_panel);
 		
 		JRadioButton m_radio_field = new JRadioButton("Male");
@@ -368,7 +341,7 @@ public class DataEntryWindow {
 		gbc_gn_label.anchor = GridBagConstraints.WEST;
 		gbc_gn_label.insets = new Insets(0, 0, 0, 5);
 		gbc_gn_label.gridx = 0;
-		gbc_gn_label.gridy = 5;
+		gbc_gn_label.gridy = 4;
 		basic_info_panel.add(gn_label, gbc_gn_label);
 		
 		
@@ -377,7 +350,7 @@ public class DataEntryWindow {
 		GridBagConstraints gbc_gn_field = new GridBagConstraints();
 		gbc_gn_field.fill = GridBagConstraints.HORIZONTAL;
 		gbc_gn_field.gridx = 1;
-		gbc_gn_field.gridy = 5;
+		gbc_gn_field.gridy = 4;
 		basic_info_panel.add(gn_field, gbc_gn_field);
 		editable_fields.add(gn_field);
 		gn_field.setColumns(10);
@@ -464,6 +437,7 @@ public class DataEntryWindow {
 		relationship_entry_fields_panel.add(lblRelationshipType, gbc_lblRelationshipType);
 		
 		JComboBox comboBox = new JComboBox();
+		comboBox.setEnabled(false);
 		comboBox.setModel(new DefaultComboBoxModel(RelationshipType.values()));
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.insets = new Insets(0, 0, 5, 0);
@@ -524,21 +498,26 @@ public class DataEntryWindow {
 		addrem_relationship_panel.setLayout(gbl_addrem_relationship_panel);
 		
 		JRadioButton add_rel_radio = new JRadioButton("Add");
+		add_rel_radio.setEnabled(false);
 		add_rel_radio.setSelected(true);
 		GridBagConstraints gbc_add_rel_radio = new GridBagConstraints();
 		gbc_add_rel_radio.insets = new Insets(0, 0, 5, 5);
 		gbc_add_rel_radio.gridx = 0;
 		gbc_add_rel_radio.gridy = 0;
 		addrem_relationship_panel.add(add_rel_radio, gbc_add_rel_radio);
+		editable_fields.add(add_rel_radio);
 		
 		JRadioButton rem_rel_radio = new JRadioButton("Remove");
+		rem_rel_radio.setEnabled(false);
 		GridBagConstraints gbc_rem_rel_radio = new GridBagConstraints();
 		gbc_rem_rel_radio.insets = new Insets(0, 0, 5, 5);
 		gbc_rem_rel_radio.gridx = 1;
 		gbc_rem_rel_radio.gridy = 0;
 		addrem_relationship_panel.add(rem_rel_radio, gbc_rem_rel_radio);
+		editable_fields.add(rem_rel_radio);
 		
 		JButton edit_rel_button = new JButton("Edit Relationship");
+		edit_rel_button.setEnabled(false);
 		edit_rel_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
@@ -548,12 +527,13 @@ public class DataEntryWindow {
 		gbc_edit_rel_button.gridx = 0;
 		gbc_edit_rel_button.gridy = 1;
 		addrem_relationship_panel.add(edit_rel_button, gbc_edit_rel_button);
+		editable_fields.add(edit_rel_button);
 		
 		JButton id_search_button = new JButton("Search for ID");
 		id_search_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				IDSearchWindow id_search_window = new IDSearchWindow();
-				id_search_window.main(null);
+				id_search_window.frmIdSearch.setVisible(true);
 			}
 		});
 		GridBagConstraints gbc_id_search_button = new GridBagConstraints();
@@ -611,7 +591,18 @@ public class DataEntryWindow {
 		gbl_bottom_navigation_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 		bottom_navigation_panel.setLayout(gbl_bottom_navigation_panel);
 		
+		JProgressBar progress_bar = new JProgressBar();
+		
+		GridBagConstraints gbc_progress_bar = new GridBagConstraints();
+		gbc_progress_bar.fill = GridBagConstraints.BOTH;
+		gbc_progress_bar.weightx = 1.0;
+		gbc_progress_bar.insets = new Insets(0, 0, 0, 5);
+		gbc_progress_bar.gridx = 1;
+		gbc_progress_bar.gridy = 0;
+		bottom_navigation_panel.add(progress_bar, gbc_progress_bar);
+		
 		BasicArrowButton back_button = new BasicArrowButton(BasicArrowButton.WEST);
+		back_button.setEnabled(false);
 		back_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				CardLayout cl = (CardLayout)(entry_cards.getLayout());
@@ -621,7 +612,8 @@ public class DataEntryWindow {
 					cl2.previous(page_header_cards);
 					current_card--;
 				}
-				
+				int progress = Math.round((current_card-1) * ((float) 100/entry_cards.getComponentCount()));
+				progress_bar.setValue(progress);
 			}
 		});
 		GridBagConstraints gbc_back_button = new GridBagConstraints();
@@ -632,16 +624,14 @@ public class DataEntryWindow {
 		gbc_back_button.gridy = 0;
 		bottom_navigation_panel.add(back_button, gbc_back_button);
 		
-		JProgressBar progress_bar = new JProgressBar();
-		GridBagConstraints gbc_progress_bar = new GridBagConstraints();
-		gbc_progress_bar.fill = GridBagConstraints.BOTH;
-		gbc_progress_bar.weightx = 1.0;
-		gbc_progress_bar.insets = new Insets(0, 0, 0, 5);
-		gbc_progress_bar.gridx = 1;
-		gbc_progress_bar.gridy = 0;
-		bottom_navigation_panel.add(progress_bar, gbc_progress_bar);
-		
 		BasicArrowButton forward_button = new BasicArrowButton(BasicArrowButton.EAST);
+		GridBagConstraints gbc_forward_button = new GridBagConstraints();
+		gbc_forward_button.fill = GridBagConstraints.BOTH;
+		gbc_forward_button.weightx = 1.0;
+		gbc_forward_button.gridx = 2;
+		gbc_forward_button.gridy = 0;
+		bottom_navigation_panel.add(forward_button, gbc_forward_button);		
+
 		forward_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				CardLayout cl = (CardLayout)(entry_cards.getLayout());
@@ -651,15 +641,26 @@ public class DataEntryWindow {
 					cl2.next(page_header_cards);
 					current_card++;
 				}
+				int progress = Math.round((current_card-1) * ((float) 100/entry_cards.getComponentCount()));
+				progress_bar.setValue(progress);
 				
 			}
 		});
-		GridBagConstraints gbc_forward_button = new GridBagConstraints();
-		gbc_forward_button.fill = GridBagConstraints.BOTH;
-		gbc_forward_button.weightx = 1.0;
-		gbc_forward_button.gridx = 2;
-		gbc_forward_button.gridy = 0;
-		bottom_navigation_panel.add(forward_button, gbc_forward_button);
-	}
+		progress_bar.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent event) {
+				JProgressBar source = (JProgressBar) event.getSource();
+				if(source.getValue() < source.getMaximum() && source.getValue() > 0) {
+					back_button.setEnabled(true);
+					forward_button.setEnabled(true);
+				}
+				if(source.getValue() == 0) {
+					back_button.setEnabled(false);
+				}
+				if(source.getValue() >= (source.getMaximum()-(float) 100/entry_cards.getComponentCount())) {
+					forward_button.setEnabled(false);
+				}
+			}
+		});
 
+	}
 }

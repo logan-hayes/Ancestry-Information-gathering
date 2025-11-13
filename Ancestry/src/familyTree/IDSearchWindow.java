@@ -1,6 +1,7 @@
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import java.awt.GridBagLayout;
 import com.jgoodies.forms.layout.FormLayout;
@@ -16,28 +17,12 @@ import javax.swing.JSpinner;
 import javax.swing.JList;
 import javax.swing.JSeparator;
 import javax.swing.AbstractListModel;
+import java.awt.Window.Type;
 
-public class IDSearchWindow {
+public class IDSearchWindow extends JDialog {
 
-	private JFrame frmIdSearch;
+	JDialog frmIdSearch;
 	private JTextField textField;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					IDSearchWindow window = new IDSearchWindow();
-					window.frmIdSearch.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
 	/**
 	 * Create the application.
 	 */
@@ -49,10 +34,11 @@ public class IDSearchWindow {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frmIdSearch = new JFrame();
+		frmIdSearch = new JDialog();
+		frmIdSearch.setModal(true);
 		frmIdSearch.setTitle("ID Search");
 		frmIdSearch.setBounds(100, 100, 450, 300);
-		frmIdSearch.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frmIdSearch.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0};
 		gridBagLayout.rowHeights = new int[]{37, 0, 0, 0};
