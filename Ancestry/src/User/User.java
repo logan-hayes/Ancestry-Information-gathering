@@ -18,7 +18,7 @@ public class User {
 	
 	
 	//Constructor
-	public User(String ID, String userName, String email, String passwordHash) {
+	public User(String userName, String email, String passwordHash) {
 		this.ID = UUID.randomUUID().toString();
 		this.userName = userName;
 		this.email = email;
